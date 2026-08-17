@@ -42,15 +42,30 @@ pipeline {
                 } 
             }
         }
+        // stage('Docker Build') {
+        //     steps {
+        //         script{
+        //             // In this block we get AWS authentication
+        //              withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+        //                 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
+        //                 docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
+        //                 docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+        //              }
+        //         }
+        //     }
+        // }
+
         stage('Docker Build') {
             steps {
-                script{
-                    // In this block we get AWS authentication
-                     withAWS(credentials: 'aws-creds', region: 'us-east-1') {
-                        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
-                        docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
-                        docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
-                     }
+                script {
+                    withAWS(credentials: 'aws-creds', region: 'us-east-1') {
+                        sh """
+                            aws ecr get-login-password --region us-east-1 | \
+                            docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
+                            docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
+                            docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+                        """
+                    }
                 }
             }
         }
