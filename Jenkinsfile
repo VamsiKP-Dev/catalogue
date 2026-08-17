@@ -42,22 +42,18 @@ pipeline {
                 } 
             }
         }
-        // stage('Docker Build') {
-        //     steps {
-        //         script{
-        //             // In this block we get AWS authentication
-        //              withAWS(credentials: 'aws-creds', region: 'us-east-1') {
-        //                 aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${acc_id}.dkr.ecr.us-east-1.amazonaws.com
-        //                 docker build -t ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion} .
-        //                 docker push ${acc_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
-        //              }
-        //         }
-        //     }
-        // }
-
+         stage('SonarQube Analysis') {
+            steps {
+                // Must match the Server Environment Name configured in Jenkins System settings
+                withSonarQubeEnv('sonar-server') { 
+                    sh "${tool 'sonar-8'}/bin/sonar-scanner"
+                }
+            }
+        }
         stage('Docker Build') {
             steps {
                 script {
+                    // In this block we get AWS authentication
                     withAWS(credentials: 'aws-creds', region: 'us-east-1') {
                         sh """
                             aws ecr get-login-password --region us-east-1 | \
